@@ -1,6 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
-const axios = require('axios');
 const app = express();
 
 // 🔐 Admin Setup
@@ -16,7 +15,7 @@ const token = process.env.BOT_TOKEN;
 const bot = new TelegramBot(token, { polling: true });
 console.log("🚀 FanHubBot is starting...");
 
-// Create Reply Keyboard
+// Reply Keyboard
 const mainMenuKeyboard = {
   reply_markup: {
     keyboard: [
@@ -33,7 +32,7 @@ const mainMenuKeyboard = {
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const name = msg.from.first_name || "DreamKeeper";
-  bot.sendMessage(chatId, `👋 Hey ${name}! Welcome to *BTN Cali Official*! 💙\n\nUse /menu to see what I can do.\n\nTo connect your Telegram for Cali DreamKeepers Hub notifications, use /getchatid to copy your ID!`, {
+  bot.sendMessage(chatId, `👋 Hey ${name}! Welcome to *BTN Cali Official*! 💙\n\nUse /menu to see what I can do.\n\nTo connect your Telegram for website notifications, use /getchatid to copy your ID!`, {
     parse_mode: "Markdown",
     ...mainMenuKeyboard
   });
@@ -125,7 +124,7 @@ bot.onText(/\/notifications/, (msg) => {
   bot.sendMessage(chatId, `
 🔔 *Available Notifications*
 
-✅ *Task Updates* – when a submission is reviewed 
+✅ *Task Updates* – when a submission is reviewed  
 📢 *New Announcements* – major updates  
 🏆 *Leaderboard Updates* – your rank changes  
 💬 *@Mentions* – when someone mentions you  
@@ -147,13 +146,13 @@ bot.onText(/\/broadcast (.+)/, (msg, match) => {
 
   const messageToSend = match[1];
 
-  // Example: Echo back to admin (later connect to real user list)
+  // Future: Loop through all users from a DB
   bot.sendMessage(chatId, `📢 *Broadcast Preview:*\n\n${messageToSend}`, {
     parse_mode: "Markdown"
   });
 });
 
-// Express server for UptimeRobot
+// Express web server to keep alive
 app.get('/', (req, res) => {
   res.send('🤖 Cali Bot is alive!');
 });
