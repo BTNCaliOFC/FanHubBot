@@ -59,11 +59,18 @@ bot.onText(/\/menu/, (msg) => {
 // /getchatid
 bot.onText(/\/getchatid/, (msg) => {
   const chatId = msg.chat.id;
-  bot.sendMessage(chatId, `🆔 *Your Chat ID is:* \`${chatId}\`\n\nCopy this and paste it into the Telegram Chat ID box on our site!`, {
-    parse_mode: "Markdown",
-    ...mainMenuKeyboard
+  bot.sendMessage(chatId, `🆔 *Your Chat ID is:* \`${chatId}\`\n\nCopy this and paste it into the Telegram Chat ID box on our site!
+`, {
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: "⚒️🔔 Setup Notifications", url: "https://dreamkeepers.btncaliofficial.com/settings" }
+          ]
+        ]
+      }
+    });
   });
-});
 
 // /profile
 bot.onText(/\/profile/, (msg) => {
