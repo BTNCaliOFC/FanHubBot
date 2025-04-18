@@ -44,7 +44,7 @@ const mainMenuKeyboard = {
   }
 };
 
-// Daily messages
+// 🌞 Daily Morning Messages
 const dailyMessagesByDay = {
   0: `🌤️ *Happy Sunday, Cali DreamKeeper!*\n\nTake time to recharge, but don’t forget — your support fuels Cali’s dreams. 💙`,
   1: `🌟 *Motivation Monday!*\n\nA new week, a new chance to shine ✨`,
@@ -55,7 +55,7 @@ const dailyMessagesByDay = {
   6: `🌈 *Supportive Saturday*\n\nTime to boost Cali with energy and votes ⚡`
 };
 
-// Evening check-ins
+// 🌙 Evening Check-Ins
 const eveningCheckIns = [
   `🌙 *How was your day, DreamKeeper?* We hope it was filled with joy and purpose. 💙`,
   `💤 *Before you rest...* Just know that showing up matters. 🌟`,
@@ -77,7 +77,7 @@ const eveningCheckIns = [
   `🌜 Think of one thing that made you smile today. Hold on to it.`
 ];
 
-// 9AM Daily Broadcast
+// 9AM Broadcast
 cron.schedule('0 1 * * *', () => {
   if (!fs.existsSync(USERS_FILE)) return;
   const users = JSON.parse(fs.readFileSync(USERS_FILE));
@@ -96,7 +96,7 @@ cron.schedule('0 1 * * *', () => {
   console.log(`📆 Sent 9AM task message to ${users.length} users.`);
 });
 
-// 8PM Evening Check-in
+// 8PM Check-in
 cron.schedule('0 12 * * *', () => {
   if (!fs.existsSync(USERS_FILE)) return;
   const users = JSON.parse(fs.readFileSync(USERS_FILE));
@@ -115,7 +115,7 @@ cron.schedule('0 12 * * *', () => {
   console.log(`🌙 Sent 8PM check-in to ${users.length} users.`);
 });
 
-// Google Sheet Reminders
+// 📅 Google Sheet Event Reminders
 const EVENT_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTddey2pYPf7EV0nEQfv1fUMmHMctWLxH1itFA1SjThWu4ygpNUDxM021-L38c2F1C8HufC51I8FPw3/pub?output=csv";
 
 cron.schedule('*/5 * * * *', () => {
@@ -233,7 +233,7 @@ Use /getchatid and paste it into your profile settings at the Members Hub. 💙
 `, { parse_mode: "Markdown", ...mainMenuKeyboard });
 });
 
-// 🔒 Admin Commands
+// 🔒 Admin Only Commands
 bot.onText(/\/listusers/, (msg) => {
   if (!isAdmin(msg.from.id)) return;
   if (!fs.existsSync(USERS_FILE)) return bot.sendMessage(msg.chat.id, 'No users found.');
@@ -248,23 +248,32 @@ bot.onText(/\/removeuser (.+)/, (msg, match) => {
   const chatIdToRemove = match[1];
   if (!fs.existsSync(USERS_FILE)) return;
   let users = JSON.parse(fs.readFileSync(USERS_FILE));
-  users = users.filter(id => id.toString() !== chatIdToRemove);
+  users = users.filter(id => id !== chatIdToRemove);
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-  bot.sendMessage(msg.chat.id, `❌ Removed user ${chatIdToRemove}.`);
+  bot.sendMessage(msg.chat.id, `❌ Removed user: \`${chatIdToRemove}\``, { parse_mode: "Markdown" });
 });
 
 bot.onText(/\/broadcast$/, (msg) => {
   if (!isAdmin(msg.from.id)) return;
-  bot.sendMessage(msg.chat.id, "📢 Send the message using the format:\n\n/broadcastall [your message here]");
+  bot.sendMessage(msg.chat.id, '🗣️ Reply with the message you want to broadcast to all users. I’ll wait for your next message.');
+  bot.once('message', (reply) => {
+    const broadcastMsg = reply.text;
+    if (!fs.existsSync(USERS_FILE)) return;
+    const users = JSON.parse(fs.readFileSync(USERS_FILE));
+    users.forEach(chatId => {
+      bot.sendMessage(chatId, `📢 *Broadcast:*\n\n${broadcastMsg}`, { parse_mode: "Markdown" });
+    });
+    bot.sendMessage(msg.chat.id, `✅ Broadcast sent to ${users.length} users.`);
+  });
 });
 
 bot.onText(/\/broadcastall (.+)/, (msg, match) => {
   if (!isAdmin(msg.from.id)) return;
+  const messageToSend = match[1];
   if (!fs.existsSync(USERS_FILE)) return;
   const users = JSON.parse(fs.readFileSync(USERS_FILE));
-  const message = match[1];
   users.forEach(chatId => {
-    bot.sendMessage(chatId, `📢 *Announcement!*\n\n${message}`, { parse_mode: "Markdown" });
+    bot.sendMessage(chatId, `📢 *Broadcast:*\n\n${messageToSend}`, { parse_mode: "Markdown" });
   });
-  bot.sendMessage(msg.chat.id, `✅ Sent broadcast to ${users.length} users.`);
+  bot.sendMessage(msg.chat.id, `✅ Broadcast sent to ${users.length} users.`);
 });
