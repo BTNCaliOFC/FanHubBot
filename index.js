@@ -78,7 +78,7 @@ const eveningCheckIns = [
 ];
 
 // 9AM Daily Broadcast
-cron.schedule('0 9 * * *', () => {
+cron.schedule('0 1 * * *', () => {
   if (!fs.existsSync(USERS_FILE)) return;
   const users = JSON.parse(fs.readFileSync(USERS_FILE));
   const messageText = dailyMessagesByDay[new Date().getDay()];
@@ -97,7 +97,7 @@ cron.schedule('0 9 * * *', () => {
 });
 
 // 8PM Evening Check-in
-cron.schedule('0 20 * * *', () => {
+cron.schedule('0 12 * * *', () => {
   if (!fs.existsSync(USERS_FILE)) return;
   const users = JSON.parse(fs.readFileSync(USERS_FILE));
   const messageText = eveningCheckIns[Math.floor(Math.random() * eveningCheckIns.length)] + `\n\n👉 Tap below to revisit your tasks or reconnect 💙`;
@@ -239,7 +239,7 @@ bot.onText(/\/listusers/, (msg) => {
   if (!fs.existsSync(USERS_FILE)) return bot.sendMessage(msg.chat.id, 'No users found.');
   const users = JSON.parse(fs.readFileSync(USERS_FILE));
   bot.sendMessage(msg.chat.id, `👥 *Saved Users:* ${users.length}\n\n\`${users.join('\n')}\``, {
-    parse_mode: 'Markdown'
+    parse_mode: "Markdown"
   });
 });
 
@@ -250,21 +250,21 @@ bot.onText(/\/removeuser (.+)/, (msg, match) => {
   let users = JSON.parse(fs.readFileSync(USERS_FILE));
   users = users.filter(id => id.toString() !== chatIdToRemove);
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-  bot.sendMessage(msg.chat.id, `❌ Removed user: ${chatIdToRemove}`);
+  bot.sendMessage(msg.chat.id, `❌ Removed user ${chatIdToRemove}.`);
 });
 
-bot.onText(/\/broadcast/, (msg) => {
+bot.onText(/\/broadcast$/, (msg) => {
   if (!isAdmin(msg.from.id)) return;
-  bot.sendMessage(msg.chat.id, '🗣️ *Send your message using:* /broadcastall [your message]', { parse_mode: 'Markdown' });
+  bot.sendMessage(msg.chat.id, "📢 Send the message using the format:\n\n/broadcastall [your message here]");
 });
 
 bot.onText(/\/broadcastall (.+)/, (msg, match) => {
   if (!isAdmin(msg.from.id)) return;
-  const message = match[1];
   if (!fs.existsSync(USERS_FILE)) return;
   const users = JSON.parse(fs.readFileSync(USERS_FILE));
+  const message = match[1];
   users.forEach(chatId => {
-    bot.sendMessage(chatId, `📢 *Broadcast:*\n\n${message}`, { parse_mode: 'Markdown' });
+    bot.sendMessage(chatId, `📢 *Announcement!*\n\n${message}`, { parse_mode: "Markdown" });
   });
-  bot.sendMessage(msg.chat.id, `✅ Broadcast sent to ${users.length} users.`);
+  bot.sendMessage(msg.chat.id, `✅ Sent broadcast to ${users.length} users.`);
 });
