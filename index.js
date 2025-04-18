@@ -77,9 +77,12 @@ const eveningCheckIns = [
   `🌜 Think of one thing that made you smile today. Hold on to it.`
 ];
 
-// 9AM Broadcast
+const moment = require('moment-timezone');
+
+// 9AM Broadcast (Manila Time) → 1:00 AM UTC
 cron.schedule('0 1 * * *', () => {
   if (!fs.existsSync(USERS_FILE)) return;
+
   const users = JSON.parse(fs.readFileSync(USERS_FILE));
   const messageText = dailyMessagesByDay[new Date().getDay()];
   const options = {
@@ -90,17 +93,29 @@ cron.schedule('0 1 * * *', () => {
       ]
     }
   };
+
   users.forEach(chatId => {
     bot.sendMessage(chatId, messageText, options);
   });
-  console.log(`📆 Sent 9AM task message to ${users.length} users.`);
+
+  const utcNow = moment.utc().format('YYYY-MM-DD HH:mm:ss');
+  const manilaNow = moment().tz("Asia/Manila").format('YYYY-MM-DD HH:mm:ss');
+
+  console.log(`📆 Sent 9AM (Manila) task message to ${users.length} users.`);
+  console.log(`🕒 Time now - UTC: ${utcNow}, Manila: ${manilaNow}`);
 });
 
-// 8PM Check-in
+const moment = require('moment-timezone');
+
+// 8PM Check-in (Manila Time) → 12:00 PM UTC
 cron.schedule('0 12 * * *', () => {
   if (!fs.existsSync(USERS_FILE)) return;
+
   const users = JSON.parse(fs.readFileSync(USERS_FILE));
-  const messageText = eveningCheckIns[Math.floor(Math.random() * eveningCheckIns.length)] + `\n\n👉 Tap below to revisit your tasks or reconnect 💙`;
+  const messageText =
+    eveningCheckIns[Math.floor(Math.random() * eveningCheckIns.length)] +
+    `\n\n👉 Tap below to revisit your tasks or reconnect 💙`;
+
   const options = {
     parse_mode: "Markdown",
     reply_markup: {
@@ -109,10 +124,16 @@ cron.schedule('0 12 * * *', () => {
       ]
     }
   };
+
   users.forEach(chatId => {
     bot.sendMessage(chatId, messageText, options);
   });
-  console.log(`🌙 Sent 8PM check-in to ${users.length} users.`);
+
+  const utcNow = moment.utc().format('YYYY-MM-DD HH:mm:ss');
+  const manilaNow = moment().tz("Asia/Manila").format('YYYY-MM-DD HH:mm:ss');
+
+  console.log(`🌙 Sent 8PM (Manila) check-in to ${users.length} users.`);
+  console.log(`🕒 Time now - UTC: ${utcNow}, Manila: ${manilaNow}`);
 });
 
 // 📅 Google Sheet Event Reminders
