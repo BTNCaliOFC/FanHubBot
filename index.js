@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const csv = require('csv-parser');
+const moment = require('moment-timezone');
 const app = express();
 
 // 🔐 Admin Setup
@@ -77,8 +78,6 @@ const eveningCheckIns = [
   `🌜 Think of one thing that made you smile today. Hold on to it.`
 ];
 
-const moment = require('moment-timezone');
-
 // 9AM Broadcast (Manila Time) → 1:00 AM UTC
 cron.schedule('0 1 * * *', () => {
   if (!fs.existsSync(USERS_FILE)) return;
@@ -104,8 +103,6 @@ cron.schedule('0 1 * * *', () => {
   console.log(`📆 Sent 9AM (Manila) task message to ${users.length} users.`);
   console.log(`🕒 Time now - UTC: ${utcNow}, Manila: ${manilaNow}`);
 });
-
-const moment = require('moment-timezone');
 
 // 8PM Check-in (Manila Time) → 12:00 PM UTC
 cron.schedule('0 12 * * *', () => {
@@ -201,100 +198,39 @@ bot.onText(/\/menu/, (msg) => {
 /notifications – 🔔 Alerts info  
 /listusers – 👥 View saved users (admin)  
 /removeuser [chatId] – ❌ Remove user (admin)  
-/broadcast – 🗣️ Preview message (admin only)  
-/broadcastall [message] – 📢 Send to all users
-`, { parse_mode: "Markdown", ...mainMenuKeyboard });
-});
-
-bot.onText(/\/profile/, (msg) => {
-  bot.sendMessage(msg.chat.id, `
-📸 *BTN Cali Official*
-
-We’re a fan-driven support hub for Cali’s journey on *Be The Next 9 Dreamers*.  
-Join us in tasks, voting, media, and uplifting Cali's dream! 💙
-`, { parse_mode: "Markdown", ...mainMenuKeyboard });
-});
-
-bot.onText(/\/support/, (msg) => {
-  bot.sendMessage(msg.chat.id, `
-❓ *Need Help?*
-
-📩 Email: hello@btncaliofficial.com  
-We’re here for you, Cali DreamKeeper! 💙
-`, { parse_mode: "Markdown", ...mainMenuKeyboard });
-});
-
-bot.onText(/\/links/, (msg) => {
-  bot.sendMessage(msg.chat.id, `
-🔗 *BTN Cali Official Links*
-
-📸 Instagram: https://instagram.com/btncaliofficial  
-🐦 X: https://x.com/btncaliofficial  
-📺 YouTube: https://youtube.com/@btncaliofficial  
-📲 Vote App: https://btnvote.com  
-🌐 Website: https://btncaliofficial.com  
-🧑‍🤝‍🧑 Hub: https://dreamkeepers.btncaliofficial.com
-`, {
-    parse_mode: "Markdown",
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: "🌐 Visit Website", url: "https://btncaliofficial.com" }],
-        [{ text: "🧑‍🤝‍🧑 Members Hub", url: "https://dreamkeepers.btncaliofficial.com" }]
-      ]
-    }
-  });
-});
-
-bot.onText(/\/notifications/, (msg) => {
-  bot.sendMessage(msg.chat.id, `
-🔔 *Notifications Guide*
-
-Get daily reminders, evening check-ins, and task alerts from us!  
-Use /getchatid and paste it into your profile settings at the Members Hub. 💙
-`, { parse_mode: "Markdown", ...mainMenuKeyboard });
-});
-
-// 🔒 Admin Only Commands
-bot.onText(/\/listusers/, (msg) => {
-  if (!isAdmin(msg.from.id)) return;
-  if (!fs.existsSync(USERS_FILE)) return bot.sendMessage(msg.chat.id, 'No users found.');
-  const users = JSON.parse(fs.readFileSync(USERS_FILE));
-  bot.sendMessage(msg.chat.id, `👥 *Saved Users:* ${users.length}\n\n\`${users.join('\n')}\``, {
-    parse_mode: "Markdown"
-  });
-});
-
-bot.onText(/\/removeuser (.+)/, (msg, match) => {
-  if (!isAdmin(msg.from.id)) return;
-  const chatIdToRemove = match[1];
-  if (!fs.existsSync(USERS_FILE)) return;
-  let users = JSON.parse(fs.readFileSync(USERS_FILE));
-  users = users.filter(id => id !== chatIdToRemove);
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-  bot.sendMessage(msg.chat.id, `❌ Removed user: \`${chatIdToRemove}\``, { parse_mode: "Markdown" });
-});
-
-bot.onText(/\/broadcast$/, (msg) => {
-  if (!isAdmin(msg.from.id)) return;
-  bot.sendMessage(msg.chat.id, '🗣️ Reply with the message you want to broadcast to all users. I’ll wait for your next message.');
-  bot.once('message', (reply) => {
-    const broadcastMsg = reply.text;
-    if (!fs.existsSync(USERS_FILE)) return;
-    const users = JSON.parse(fs.readFileSync(USERS_FILE));
-    users.forEach(chatId => {
-      bot.sendMessage(chatId, `📢 *Broadcast:*\n\n${broadcastMsg}`, { parse_mode: "Markdown" });
-    });
-    bot.sendMessage(msg.chat.id, `✅ Broadcast sent to ${users.length} users.`);
-  });
+/broadcast – 🗣️ Preview message (admin)  
+/broadcastall – 🗣️ Send message to all users (admin)  
+  `);
 });
 
 bot.onText(/\/broadcastall (.+)/, (msg, match) => {
-  if (!isAdmin(msg.from.id)) return;
-  const messageToSend = match[1];
-  if (!fs.existsSync(USERS_FILE)) return;
-  const users = JSON.parse(fs.readFileSync(USERS_FILE));
-  users.forEach(chatId => {
-    bot.sendMessage(chatId, `📢 *Broadcast:*\n\n${messageToSend}`, { parse_mode: "Markdown" });
-  });
-  bot.sendMessage(msg.chat.id, `✅ Broadcast sent to ${users.length} users.`);
+  const text = match[1];
+
+  if (isAdmin(msg.from.id)) {
+    if (!fs.existsSync(USERS_FILE)) return;
+
+    const users = JSON.parse(fs.readFileSync(USERS_FILE));
+    users.forEach(chatId => {
+      bot.sendMessage(chatId, text, { parse_mode: "Markdown" });
+    });
+
+    bot.sendMessage(msg.chat.id, `📢 Message broadcasted to ${users.length} users.`);
+  } else {
+    bot.sendMessage(msg.chat.id, "🚫 You do not have permission to use this command.");
+  }
+});
+
+// Admin: List all saved users
+bot.onText(/\/listusers/, (msg) => {
+  if (isAdmin(msg.from.id)) {
+    if (fs.existsSync(USERS_FILE)) {
+      const users = JSON.parse(fs.readFileSync(USERS_FILE));
+      let userList = users.join('\n');
+      bot.sendMessage(msg.chat.id, `👥 List of saved users:\n\n${userList}`);
+    } else {
+      bot.sendMessage(msg.chat.id, "🔴 No users found.");
+    }
+  } else {
+    bot.sendMessage(msg.chat.id, "🚫 You do not have permission to view the user list.");
+  }
 });
