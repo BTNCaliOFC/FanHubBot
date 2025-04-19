@@ -53,7 +53,7 @@ const dailyMessagesByDay = {
   3: `🧠 *Wisdom Wednesday*\n\nMidweek magic starts with one click!`,
   4: `🔥 *Thriving Thursday!*\n\nAnother chance to grow, support, and lead 🌱`,
   5: `🎉 *Feel-Good Friday!*\n\nEnd the week strong — complete your tasks 💌`,
-  6: `🌈 *Supportive Saturday*\n\nTime to boost Cali with energy and votes ⚡`
+  6: `🌈 *Supportive Saturday*\n\nTime to boost Cali with energy and good vibes ⚡`
 };
 
 // 🌙 Evening Check-Ins
@@ -88,7 +88,7 @@ cron.schedule('0 1 * * *', () => {
     parse_mode: "Markdown",
     reply_markup: {
       inline_keyboard: [
-        [{ text: "📲 Go to Members Hub", url: "https://dreamkeepers.btncaliofficial.com" }]
+        [{ text: "📲 Go to Fan Hub", url: "https://dreamkeepers.btncaliofficial.com" }]
       ]
     }
   };
