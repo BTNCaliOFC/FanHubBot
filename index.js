@@ -187,7 +187,7 @@ bot.onText(/\/getchatid/, (msg) => {
 
 bot.onText(/\/menu/, (msg) => {
   bot.sendMessage(msg.chat.id, `
-📋 *Cali Bot Menu*
+📋 *BTN Cali Fan Hub Bot Menu*
 
 /start – 👋 Welcome message  
 /menu – 📋 Show commands  
